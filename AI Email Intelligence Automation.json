@@ -1,0 +1,255 @@
+{
+  "name": "AI Email Intelligence Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c691e10c-994c-4b23-beb2-a2a0411a00d5",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Od69BLefYcFu9v0Q",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this email and classify it.\n\nSubject:\n{{ $json.Subject }}\n\nSender:\n{{ $json.From }}\n\nEmail:\n{{ $json.snippet }}\n\nChoose exactly one category:\nJOB\nCLIENT\nIMPORTANT\nNEWSLETTER\nSPAM\nOTHER\n\nChoose exactly one priority:\nHIGH\nMEDIUM\nLOW\n\nReturn these four fields:\ncategory\npriority\nsummary\naction_required\n\nRules:\n- JOB = jobs, internships, recruiters, interviews, or hiring opportunities\n- CLIENT = customer or business inquiries\n- IMPORTANT = messages that require attention\n- NEWSLETTER = newsletters, promotions, marketing, or subscriptions\n- SPAM = unwanted or suspicious messages\n- OTHER = anything that does not fit the above categories\n- Do not invent information.\n- Keep summary short.\n- action_required must be true or false.\n\nPriority rules:\n- HIGH: job/internship/interview opportunity, important client request, urgent deadline, or immediate action required.\n- MEDIUM: useful information that requires attention but is not urgent.\n- LOW: newsletters, general information, notifications, or messages requiring no action.\n- A genuine job or internship opportunity should normally be HIGH unless the email clearly indicates it is only informational.\n- If action_required is true for an important opportunity, prefer HIGH.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        208,
+        -32
+      ],
+      "id": "da0eb182-0067-48a9-b0d4-fa61927b8e45",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"JOB\",\n  \"priority\": \"HIGH\",\n  \"summary\": \"AI Engineer internship opportunity requiring Python and RAG.\",\n  \"action_required\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        208
+      ],
+      "id": "ff661294-bddd-453d-a7f2-728c60057a6c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1t0OtIDn-c-Xmci1GPaFfT2rvub0cvWhPjFFK5AGX1vI",
+          "mode": "list",
+          "cachedResultName": "AI Email Intelligence",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1t0OtIDn-c-Xmci1GPaFfT2rvub0cvWhPjFFK5AGX1vI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1t0OtIDn-c-Xmci1GPaFfT2rvub0cvWhPjFFK5AGX1vI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+            "Sender": "={{ $('Gmail Trigger').item.json.From }}",
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "Category": "={{ $json.output.category }}",
+            "Priority": "={{ $json.output.priority }}",
+            "Summary": "={{ $json.output.summary }}",
+            "Action Required": "={{ $json.output.action_required }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action Required",
+              "displayName": "Action Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        0
+      ],
+      "id": "8d4db5ca-4f2a-4fdd-8521-043f99c96f5d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hFNjgV7N4B5wOggu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.6-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        176
+      ],
+      "id": "675f724d-d108-4873-88c9-df1a863c7bf1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8e2X4k82LVYFLAiT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2f81c686-2994-4ab1-b60b-1c11106121d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ab782a197a34b627a970462134e9e8786494badc720390c65408c52487825c6c"
+  },
+  "nodeGroups": [],
+  "id": "Fbx6nUBpyVbgDnF9",
+  "tags": []
+}
